@@ -1,131 +1,168 @@
-# Deep Learning Lab 1: PyTorch for Regression and Multi-Class Classification
+# Atelier 1: Machine Learning with PyTorch - Regression and Classification
 
-## Objective
-The main purpose of this lab is to get familiar with the PyTorch library for performing classification and regression tasks using Deep Neural Network (DNN)/Multi-Layer Perceptron (MLP) architectures. The lab is divided into two parts:
+## Overview
+This repository contains the code and results for Atelier 1, focusing on two main tasks using PyTorch on GPU:
+- **Part 1: Regression** - Predicting the closing stock prices from historical data (using `prices-split-adjusted.csv` or `prices.csv`).
+- **Part 2: Multi-Class Classification** - Predictive maintenance to classify failure types in machinery (using `predictive_maintenance.csv`).
 
-- **Part 1: Regression** - Predict the closing price of stocks using historical data.
-- **Part 2: Multi-Class Classification** - Predict machine failure types for predictive maintenance.
+The code is split into two scripts:
+- `atelier1_gpu.py`: Handles Part 1 (Regression).
+- `atelier1_2.py`: Handles Part 2 (Classification).
 
-This README summarizes the implementation in `atelier1_gpu.py` (Part 1: Regression with GPU acceleration) and `atelier1_2.py` (Part 2: Classification with GPU acceleration), including the approach, code structure, and results.
+Key libraries used: Pandas, NumPy, Matplotlib, Seaborn, PyTorch, Scikit-learn.
 
-## Datasets
-- **Part 1 (Regression)**: NYSE Stock Prices Dataset from [Kaggle](https://www.kaggle.com/datasets/dgawlik/nyse). Contains historical stock data with columns like `date`, `symbol`, `open`, `close`, `low`, `high`, `volume`.
-  - Loaded file: `prices-split-adjusted.csv` (851,264 rows, 7 columns).
-- **Part 2 (Classification)**: Predictive Maintenance Dataset from [Kaggle](https://www.kaggle.com/datasets/shivamb/machine-predictive-maintenance-classification). Contains machine sensor data with columns like `UDI`, `Product ID`, `Type`, `Air temperature [K]`, `Process temperature [K]`, `Rotational speed [rpm]`, `Torque [Nm]`, `Tool wear [min]`, `Target`, `Failure Type`.
-  - Shape: (10,000 rows, 10 columns).
-  - Classes are highly imbalanced (e.g., "No Failure": 9,652; others much lower).
+Environment setup:
+- PyTorch version: 2.6.0+cu124
+- CUDA available: True (Version: 12.4)
+- GPU: NVIDIA GeForce RTX 4060 Laptop GPU (Memory: 8.59 GB)
+- Device used: cuda
 
-## Environment and Setup
-- **PyTorch Version**: 2.6.0+cu124
-- **CUDA Available**: True (Version: 12.4)
-- **GPU**: NVIDIA GeForce RTX 4060 Laptop GPU (Memory: 8.59 GB)
-- **Libraries Used**: pandas, numpy, matplotlib, seaborn, torch, sklearn (for preprocessing, metrics, and grid search).
-- **Device**: All computations are performed on GPU (CUDA) where available for faster training.
+Datasets:
+- Stock prices: ~851,264 rows, 7 columns (date, symbol, open, close, low, high, volume).
+- Predictive maintenance: 10,000 rows, 10 columns (UDI, Product ID, Type, Air temperature [K], Process temperature [K], Rotational speed [rpm], Torque [Nm], Tool wear [min], Target, Failure Type).
 
-To set up:
-1. Install dependencies: `pip install torch pandas numpy matplotlib seaborn scikit-learn`.
-2. Ensure CUDA is installed if using GPU.
-3. Download datasets to the working directory.
-
-## How to Run
-- **Part 1 (Regression)**: Run `python atelier1_gpu.py`. It performs EDA, data prep, grid search, training, and visualization.
-- **Part 2 (Classification)**: Run `python atelier1_2.py`. It performs preprocessing, EDA, balancing, grid search, training, and evaluation.
-
-Note: Part 1 training may take time due to large dataset and grid search.
-
-## Part 1: Regression – Predicting Stock Closing Price
+## Part 1: Regression – Predicting Closing Stock Prices
 ### Description
-- Task: Predict the `close` price using features like `open`, `high`, `low`, `volume`.
-- Approach:
-  1. **EDA**: Visualize stock price evolution (e.g., AAPL), closing price distribution, correlation heatmap, and average volume by year.
-  2. **Data Prep**: Split data (80/20), standardize features using `StandardScaler`. Convert to PyTorch tensors and use DataLoader.
-  3. **Model**: Custom MLP (`Regressor` class) with configurable layers, ReLU activation, and dropout.
-  4. **Grid Search**: Use `ParameterGrid` to test hyperparameters (layers, learning rate, dropout). Train for 50 epochs per config, select based on final test MSE.
-  5. **Training**: Adam optimizer, MSE loss. Train best model for 150 epochs. Visualize loss curves.
-  6. **Regularization Comparison**: Test an enhanced model with BatchNorm, higher dropout, and L2 regularization.
-- Code Structure:
-  - Load and parse dataset (handles both CSV formats).
-  - EDA plots.
-  - Data splitting and scaling.
-  - Model definition and training function (GPU-accelerated).
-  - Grid search loop.
-  - Final training and evaluation (RMSE, R²).
-  - Regularization model comparison.
+This part focuses on regressing the `close` price using features: `open`, `high`, `low`, `volume`. Data is split (80/20), standardized, and trained using a feedforward neural network with ReLU activations and dropout. Hyperparameters are tuned via manual grid search. The model is trained on GPU with Adam optimizer and MSE loss.
 
-### Results (Partial - Training Still Executing)
-- Dataset Loaded: 851,264 rows, 7 columns.
-- Grid Search (Partial Output):
-  - {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.001} → Test MSE = 54.90
-  - {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.0005} → Test MSE = 49.03
-  - {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.01} → Test MSE = 364.18
-  - {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.001} → Test MSE = 12.05
-  - {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.0005} → Test MSE = 7.98
-  - {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.01} → Test MSE = 169.15
-  - {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.001} → Test MSE = 47.39
-  - {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.0005} → Test MSE = 22.97
-  - {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.01} → Test MSE = 92.84
-  - {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.001} → Test MSE = 37.99
-  - {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.0005} → Test MSE = 32.20
-  - {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.01} → Test MSE = 204.40
-  - {'dropout': 0.3, 'layers': [256, 128, 64], 'lr': 0.001} → Test MSE = 50.11
-  - {'dropout': 0.3, 'layers': [256, 128, 64], 'lr': 0.0005} → Test MSE = 9.85
-- Full grid search and final metrics (RMSE, R²) pending completion.
-- Interpretation: Deeper models with moderate LR perform better. Regularization reduces overfitting (visualized in loss curves).
+### EDA Summary
+- Apple stock price shows upward trend from 2010-2017.
+- Close prices are right-skewed.
+- High correlation between price variables (open, high, low, close ~1.0), negative with volume.
+- Trading volume decreases over years.
+
+### Model Architecture
+- Input: 4 features.
+- Hidden layers: Configurable (e.g., [256, 128, 64]).
+- Output: 1 (close price).
+- Activation: ReLU.
+- Dropout: Configurable.
+- Batch size: 256.
+- Epochs: 50 (grid search), 150 (final).
+
+### Grid Search (In Progress)
+Grid parameters:
+- Layers: [[128,64,32], [256,128,64], [64,32]]
+- Learning rates: [0.001, 0.0005, 0.01]
+- Dropout: [0.2, 0.3, 0.4]
+
+Current results (execution ongoing, partial output):
+- {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.001} → Test MSE = 54.90
+- {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.0005} → Test MSE = 49.03
+- {'dropout': 0.2, 'layers': [128, 64, 32], 'lr': 0.01} → Test MSE = 364.18
+- {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.001} → Test MSE = 12.05
+- {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.0005} → Test MSE = 7.98
+- {'dropout': 0.2, 'layers': [256, 128, 64], 'lr': 0.01} → Test MSE = 169.15
+- {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.001} → Test MSE = 47.39
+- {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.0005} → Test MSE = 22.97
+- {'dropout': 0.2, 'layers': [64, 32], 'lr': 0.01} → Test MSE = 92.84
+- {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.001} → Test MSE = 37.99
+- {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.0005} → Test MSE = 32.20
+- {'dropout': 0.3, 'layers': [128, 64, 32], 'lr': 0.01} → Test MSE = 204.40
+- {'dropout': 0.3, 'layers': [256, 128, 64], 'lr': 0.001} → Test MSE = 50.11
+- {'dropout': 0.3, 'layers': [256, 128, 64], 'lr': 0.0005} → Test MSE = 9.85
+- {'dropout': 0.3, 'layers': [256, 128, 64], 'lr': 0.01} → Test MSE = 229.63
+- {'dropout': 0.3, 'layers': [64, 32], 'lr': 0.001} → Test MSE = 91.08
+- {'dropout': 0.3, 'layers': [64, 32], 'lr': 0.0005} → Test MSE = 36.28
+
+### Interpretation (Based on Current Results)
+- Deeper networks ([256,128,64]) perform better, with lowest MSE ~7.98 (dropout=0.2, lr=0.0005).
+- Higher LR (0.01) leads to worse performance (higher MSE), suggesting instability.
+- Dropout 0.2 seems slightly better than 0.3 so far.
+- Shallower models ([64,32]) have higher MSE, indicating need for more capacity.
+- Execution is ongoing; final best model and training curves will be updated upon completion.
+
+### Figures
+![Figure 1: EDA for Stock Prices](<img width="1400" height="500" alt="Figure_2" src="https://github.com/user-attachments/assets/73b2f302-e8a6-440a-b994-48ce6933ae9c" />
+)  
+*(Evolution du prix Apple, Distribution des prix de clôture, Corrélation des variables prix, Volume moyen par année)*
+
+Note: Final training loss curves, RMSE, and R² for the best model are pending completion.
 
 ## Part 2: Multi-Class Classification – Predictive Maintenance
 ### Description
-- Task: Predict `Failure Type` (6 classes) using sensor features.
-- Approach:
-  1. **Preprocessing**: Drop irrelevant columns (`UDI`, `Product ID`), encode `Type` (L/M/H → 0/1/2). Handle imbalance.
-  2. **EDA**: Countplot of failure types, correlation heatmap.
-  3. **Balancing**: Manual oversampling to match the majority class count (from ~10k to ~58k samples).
-  4. **Data Prep**: Split (80/20, stratified), standardize features. Use DataLoader.
-  5. **Model**: Custom MLP (`Classifier` class) with BatchNorm, ReLU, dropout, and 6 output classes.
-  6. **Grid Search**: Test LR and dropout (60 epochs per config), select based on test accuracy.
-  7. **Training**: Adam optimizer, CrossEntropy loss. Train best model for 120 epochs. Visualize loss/accuracy curves.
-  8. **Evaluation**: Classification report (precision, recall, F1).
-- Code Structure:
-  - Load and clean dataset.
-  - EDA plots.
-  - Manual oversampling for balance.
-  - Data splitting and scaling.
-  - Model definition.
-  - Grid search loop (GPU-accelerated).
-  - Final training with metrics tracking.
-  - Visualization and classification report.
+This part classifies failure types (6 classes) using features: Type, Air/Process temperature, Rotational speed, Torque, Tool wear. Data is imbalanced, so oversampled to balance classes. Split (80/20), standardized, and trained on GPU with Adam optimizer and CrossEntropy loss.
+
+### EDA Summary
+- Highly imbalanced: "No Failure" dominates (9652/10000).
+- Correlations: Torque and Rotational speed negatively correlated (-0.88); Tool wear weakly correlated.
+
+### Data Preparation
+- Dropped irrelevant columns (UDI, Product ID).
+- Encoded 'Type' (L=0, M=1, H=2) and 'Failure Type' (LabelEncoder).
+- Oversampled minorities to match majority (9652 each, total ~57,912 samples).
+- Stratified split.
+
+### Model Architecture
+- Input: 6 features.
+- Hidden layers: [256 (BN+ReLU+Dropout), 128 (BN+ReLU+Dropout), 64 (ReLU)].
+- Output: 6 classes.
+- Batch size: 128.
+- Epochs: 60 (grid search), 120 (final).
+
+### Grid Search
+Grid parameters:
+- Learning rates: [0.001, 0.0005]
+- Dropout: [0.3, 0.5]
+
+Results:
+- lr=0.001 dropout=0.3 → Accuracy = 0.9908
+- lr=0.0005 dropout=0.3 → Accuracy = 0.9893
+- lr=0.001 dropout=0.5 → Accuracy = 0.9820
+- lr=0.0005 dropout=0.5 → Accuracy = 0.9807
+
+Best: {'dropout': 0.3, 'lr': 0.001} | Accuracy = 0.9908
+
+### Final Training
+- Optimizer: Adam (lr=0.001, weight_decay=1e-5).
+- Epochs: 120.
+- Progress:
+  - Epoch 20: Train Acc=0.9845 | Test Acc=0.9921
+  - Epoch 40: Train Acc=0.9863 | Test Acc=0.9934
+  - Epoch 60: Train Acc=0.9865 | Test Acc=0.9934
+  - Epoch 80: Train Acc=0.9870 | Test Acc=0.9928
+  - Epoch 100: Train Acc=0.9867 | Test Acc=0.9945
+  - Epoch 120: Train Acc=0.9879 | Test Acc=0.9921
 
 ### Results
-- Imbalance Before: Counter({'No Failure': 9652, 'Heat Dissipation Failure': 112, 'Power Failure': 95, 'Overstrain Failure': 78, 'Tool Wear Failure': 45, 'Random Failures': 18})
-- After Balancing: Counter({1: 9652, 3: 9652, 5: 9652, 2: 9652, 4: 9652, 0: 9652}) (Classes encoded: ['Heat Dissipation Failure' (0), 'No Failure' (1), ...])
-- Grid Search:
-  - lr=0.001 dropout=0.3 → Accuracy = 0.9908
-  - lr=0.0005 dropout=0.3 → Accuracy = 0.9893
-  - lr=0.001 dropout=0.5 → Accuracy = 0.9820
-  - lr=0.0005 dropout=0.5 → Accuracy = 0.9807
-- Best Model: {'dropout': 0.3, 'lr': 0.001} | Accuracy = 0.9908
-- Training Progress (Final Model):
-  - Epoch 20 → Train Acc: 0.9845 | Test Acc: 0.9921
-  - Epoch 40 → Train Acc: 0.9863 | Test Acc: 0.9934
-  - Epoch 60 → Train Acc: 0.9865 | Test Acc: 0.9934
-  - Epoch 80 → Train Acc: 0.9870 | Test Acc: 0.9928
-  - Epoch 100 → Train Acc: 0.9867 | Test Acc: 0.9945
-  - Epoch 120 → Train Acc: 0.9879 | Test Acc: 0.9921
-- Classification Report (Test Set):
-precision recall f1-score support
-Heat Dissipation Failure 0.9943 1.0000 0.9972 1930
-No Failure 1.0000 0.9528 0.9759 1930
-Overstrain Failure 0.9979 1.0000 0.9990 1931
-Power Failure 0.9959 1.0000 0.9979 1931
-Random Failures 0.9913 1.0000 0.9956 1931
-Tool Wear Failure 0.9743 1.0000 0.9870 1930
-accuracy 0.9921 11583
-macro avg 0.9923 0.9921 0.9921 11583
-weighted avg 0.9923 0.9921 0.9921 11583
-- Interpretation: Oversampling resolved imbalance, leading to high accuracy (>99%). Model generalizes well (minimal overfitting in curves). "No Failure" has slightly lower recall due to original dominance.
+- Final Test Accuracy: 0.9921
+- Classification Report:
+
+| Class                  | Precision | Recall | F1-Score | Support |
+|------------------------|-----------|--------|----------|---------|
+| Heat Dissipation Failure | 0.9943 | 1.0000 | 0.9972 | 1930 |
+| No Failure             | 1.0000 | 0.9528 | 0.9759 | 1930 |
+| Overstrain Failure     | 0.9979 | 1.0000 | 0.9990 | 1931 |
+| Power Failure          | 0.9959 | 1.0000 | 0.9979 | 1931 |
+| Random Failures        | 0.9913 | 1.0000 | 0.9956 | 1931 |
+| Tool Wear Failure      | 0.9743 | 1.0000 | 0.9870 | 1930 |
+| **Accuracy**           |           |        | 0.9921 | 11583 |
+| **Macro Avg**          | 0.9923 | 0.9921 | 0.9921 | 11583 |
+| **Weighted Avg**       | 0.9923 | 0.9921 | 0.9921 | 11583 |
+
+### Interpretation
+- Excellent performance post-oversampling (Test Acc >99%).
+- "No Failure" has lower recall (0.95), possibly due to original imbalance.
+- Loss decreases steadily; accuracy plateaus around 0.99.
+- Model generalizes well, with minimal overfitting (train/test gaps small).
+- Oversampling and batch norm helped handle imbalance and training stability.
+
+### Figures
+![Figure 2: EDA for Predictive Maintenance](<img width="1536" height="802" alt="Figure_1" src="https://github.com/user-attachments/assets/76aadc76-36ff-4c8a-a696-898e52b050f8" />
+)  
+*(Distribution des types de panne, Corrélation des variables numériques)*
+
+![Figure 3: Training Curves for Classification](<img width="1400" height="500" alt="Figure_2_2" src="https://github.com/user-attachments/assets/ce7841ce-f0ad-4837-9170-875a7165104b" />
+)  
+*(Loss/Epochs - Classification, Accuracy/Epochs - Classification)*
+
+## How to Run
+1. Ensure GPU setup and libraries installed.
+2. Run `atelier1_gpu.py` for Part 1.
+3. Run `atelier1_2.py` for Part 2.
+4. Datasets must be in the same directory.
 
 ## Notes
-- GPU acceleration significantly speeds up training (e.g., large batches, deep models).
-- Visualizations (plots) are generated during execution but not saved; modify code to save if needed.
-- Part 1 results are partial; update this README with full metrics once training completes.
-
-Author: Niama Aqarial | Date: November 28, 2025
+- Part 1 execution is ongoing; update README with final results.
+- All plots saved during execution (e.g., via plt.show()).
+- Training complete for Part 2 on cuda device.

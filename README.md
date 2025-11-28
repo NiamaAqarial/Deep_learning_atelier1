@@ -73,7 +73,8 @@ Current results (execution ongoing, partial output):
 - Execution is ongoing; final best model and training curves will be updated upon completion.
 
 ### Figures
-![Figure 1: EDA for Stock Prices](<img width="1400" height="500" alt="Figure_2" src="https://github.com/user-attachments/assets/73b2f302-e8a6-440a-b994-48ce6933ae9c" />
+![Figure 1: EDA for Stock Prices](<img width="1536" height="802" alt="Figure_1" src="https://github.com/user-attachments/assets/bfe4763e-c7f3-49e2-ae0b-cbf5cc896496" />
+
 )  
 *(Evolution du prix Apple, Distribution des prix de clôture, Corrélation des variables prix, Volume moyen par année)*
 
@@ -148,11 +149,13 @@ Best: {'dropout': 0.3, 'lr': 0.001} | Accuracy = 0.9908
 - Oversampling and batch norm helped handle imbalance and training stability.
 
 ### Figures
-![Figure 2: EDA for Predictive Maintenance](<img width="1536" height="802" alt="Figure_1" src="https://github.com/user-attachments/assets/76aadc76-36ff-4c8a-a696-898e52b050f8" />
+![Figure 2: EDA for Predictive Maintenance](<img width="1400" height="500" alt="Figure_2" src="https://github.com/user-attachments/assets/3e3b95e4-51da-4210-b7fe-fabd9c0fb681" />
+
 )  
 *(Distribution des types de panne, Corrélation des variables numériques)*
 
-![Figure 3: Training Curves for Classification](<img width="1400" height="500" alt="Figure_2_2" src="https://github.com/user-attachments/assets/ce7841ce-f0ad-4837-9170-875a7165104b" />
+![Figure 3: Training Curves for Classification](<img width="1400" height="500" alt="Figure_2_2" src="https://github.com/user-attachments/assets/d86d0068-3a0e-4345-a31e-6df43d1d605a" />
+
 )  
 *(Loss/Epochs - Classification, Accuracy/Epochs - Classification)*
 
